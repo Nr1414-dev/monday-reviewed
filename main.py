@@ -1,29 +1,27 @@
 #!/usr/bin/env python3
-"""Monday, Reviewed in One Line — make.fun entry.
+"""Write the Monday review to /output/entry.txt.
 
-Writes a single one-line review of the entrant's own Monday, under
-200 characters, to /output/entry.txt. Deterministic: the same bytes
-on every run.
+One line, under 200 characters, deterministic on every run.
+The review itself is the whole entry: no title, no explanation.
 """
 
-LINE = "Monday: 8 a.m. dentist, 9 a.m. meeting, 10 a.m. regret \u2014 the drill was the only thing that listened."
+from pathlib import Path
+
+REVIEW = "Monday: 8 a.m. dentist, 9 a.m. meeting, 10 a.m. regret \u2014 the drill was the only thing that listened."
+DEST = Path("/output/entry.txt")
 
 
-def main() -> None:
-    path = "/output/entry.txt"
-    with open(path, "w", encoding="utf-8") as f:
-        f.write(LINE)
-    import os
-
-    os.chmod(path, 0o644)
-    # Read-back guard: the file on disk must be byte-identical to the
-    # validated line, one line, under 200 characters, no trailing newline.
-    with open(path, "r", encoding="utf-8") as f:
-        written = f.read()
-    assert written == LINE, "entry mismatch"
-    assert 1 <= len(written) <= 200, "entry length out of range"
-    assert written == written.strip() and "\n" not in written, "entry not one clean line"
+def run() -> None:
+    DEST.write_text(REVIEW, encoding="utf-8")
+    DEST.chmod(0o644)
+    # Read it back: what landed on disk has to be the reviewed line,
+    # exactly one line, inside the 200-character gate, no trailing newline.
+    back = DEST.read_text(encoding="utf-8")
+    assert back == REVIEW, "wrote something else"
+    assert 0 < len(back) < 201, "review length wrong"
+    assert back == back.strip(), "review has stray whitespace"
+    assert "\n" not in back, "review must stay one line"
 
 
 if __name__ == "__main__":
-    main()
+    run()
